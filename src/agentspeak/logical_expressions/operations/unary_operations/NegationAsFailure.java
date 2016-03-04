@@ -12,7 +12,7 @@ import agentspeak.logical_expressions.terminals.BeliefLiteral;
 public class NegationAsFailure extends UnaryOperation {
 	
 	public static final String SYMBOL_NEGATION_AS_FAILURE = "not";
-	public static final int PRECEDENCE_NEGATION_AS_FAILURE = 5;
+	public static final int PRECEDENCE_NEGATION_AS_FAILURE = 3;
 	
 	public NegationAsFailure(LogicalExpression c) throws UnsupportedOperationException {
 		super(c);

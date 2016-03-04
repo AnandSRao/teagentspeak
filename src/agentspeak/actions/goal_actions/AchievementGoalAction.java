@@ -29,7 +29,7 @@ public class AchievementGoalAction extends GoalAction {
 		 */
 		AchievementGoal ground = achievementGoal.substitute(u);
 		es.add(new InternalEvent(new AddGoalEventTrigger(ground), i));
-		System.out.println("        subgoal created: " + ground);
+		System.out.println("          subgoal created: " + ground);
 		return true;
 	}
 	

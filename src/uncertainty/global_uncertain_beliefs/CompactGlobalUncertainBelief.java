@@ -5,6 +5,7 @@ import java.util.Map;
 
 import uncertainty.GlobalUncertainBelief;
 import uncertainty.epistemic_states.CompactEpistemicState;
+import uncertainty.epistemic_states.compact_epistemic_states.ProbabilisticCompactEpistemicState;
 import agentspeak.LogicalExpression;
 import agentspeak.Unifier;
 import agentspeak.logical_expressions.BeliefAtom;
@@ -51,6 +52,7 @@ public class CompactGlobalUncertainBelief extends GlobalUncertainBelief {
 				throw new Exception("overlaps with existing local epistemic state");
 			}
 		}
+		this.addToDomain(es.getDomain());
 		localEpistemicStates.put(es.getDomain(), es);
 	}
 	
@@ -77,8 +79,9 @@ public class CompactGlobalUncertainBelief extends GlobalUncertainBelief {
 	
 	@Override
 	public Unifier entails(BeliefAtom f, Unifier u) throws Exception {
-		if(this.someLanguageContains(f)) {
-			for(CompactEpistemicState ces : this.getLocalEpistemicStates(f)) {
+		BeliefAtom ground = f.substitute(u);
+		if(this.someLanguageContains(ground)) {
+			for(CompactEpistemicState ces : this.getLocalEpistemicStates(ground)) {
 				Unifier unifier = ces.entails(f, u);
 				if(unifier != null) {
 					return unifier;
@@ -92,8 +95,9 @@ public class CompactGlobalUncertainBelief extends GlobalUncertainBelief {
 	
 	@Override
 	public Unifier entails(BeliefLiteral f, Unifier u) throws Exception {
-		if(this.someLanguageContains(f)) {
-			for(CompactEpistemicState ces : this.getLocalEpistemicStates(f)) {
+		BeliefLiteral ground = f.substitute(u);
+		if(this.someLanguageContains(ground)) {
+			for(CompactEpistemicState ces : this.getLocalEpistemicStates(ground)) {
 				Unifier unifier = ces.entails(f, u);
 				if(unifier != null) {
 					return unifier;
@@ -107,8 +111,9 @@ public class CompactGlobalUncertainBelief extends GlobalUncertainBelief {
 	
 	@Override
 	public Unifier entails(Conjunction f, Unifier u) throws Exception {
-		if(this.someLanguageContains(f)) {
-			for(CompactEpistemicState ces : this.getLocalEpistemicStates(f)) {
+		Conjunction ground = f.substitute(u);
+		if(this.someLanguageContains(ground)) {
+			for(CompactEpistemicState ces : this.getLocalEpistemicStates(ground)) {
 				Unifier unifier = ces.entails(f, u);
 				if(unifier != null) {
 					return unifier;
@@ -127,8 +132,9 @@ public class CompactGlobalUncertainBelief extends GlobalUncertainBelief {
 	
 	@Override
 	public Unifier entails(Disjunction f, Unifier u) throws Exception {
-		if(this.someLanguageContains(f)) {
-			for(CompactEpistemicState ces : this.getLocalEpistemicStates(f)) {
+		Disjunction ground = f.substitute(u);
+		if(this.someLanguageContains(ground)) {
+			for(CompactEpistemicState ces : this.getLocalEpistemicStates(ground)) {
 				Unifier unifier = ces.entails(f, u);
 				if(unifier != null) {
 					return unifier;
@@ -136,44 +142,104 @@ public class CompactGlobalUncertainBelief extends GlobalUncertainBelief {
 			}
 			return null;
 		} else {
-			throw new Exception("unsupported operator");
+			if(ground.isGround()) {
+				if(this.entails(f.getLeft(), u) != null 
+						|| this.entails(f.getRight(), u) != null) {
+					return u;
+				} else {
+					return null;
+				}
+			} else {
+				throw new Exception("operator only supported for ground formulae");
+			}
 		}
 	}
 	
 	@Override
 	public Unifier entails(PlausibilityGE f, Unifier u) throws Exception {
-		if(this.someLanguageContains(f)) {
-			for(CompactEpistemicState ces : this.getLocalEpistemicStates(f)) {
+		PlausibilityGE ground = f.substitute(u);
+		if(this.someLanguageContains(ground)) {
+			for(CompactEpistemicState ces : this.getLocalEpistemicStates(ground)) {
 				Unifier unifier = ces.entails(f, u);
 				if(unifier != null) {
 					return unifier;
 				}
 			}
 			return null;
-		} else {
+		} else if(ground.isGround() && this.someLanguageContains(ground.getLeft()) && this.someLanguageContains(ground.getRight())) {
+			LogicalExpression left = new StrongNegation(ground.getLeft());
+			double leftLambda = 0;
+			for(CompactEpistemicState ces : this.getLocalEpistemicStates(left)) {
+				if(!(ces instanceof ProbabilisticCompactEpistemicState)) {
+					return null;
+				}
+				leftLambda = ces.lambda(left);
+				break;
+			}
+			LogicalExpression right = new StrongNegation(ground.getRight());
+			double rightLambda = 0;
+			for(CompactEpistemicState ces : this.getLocalEpistemicStates(right)) {
+				if(!(ces instanceof ProbabilisticCompactEpistemicState)) {
+					return null;
+				}
+				rightLambda = ces.lambda(right);
+				break;
+			}
+			System.err.println("[9] \\lambda(" + left + ") <= \\lambda(" + right + ") = " + leftLambda + " <= " + rightLambda);
+			if(leftLambda <= rightLambda) {
+				return u;
+			}
 			return null;
+		} else {
+			throw new Exception("operator is only supported across multiple epistemic states if they are probabilistic");
 		}
 	}
 	
 	@Override
 	public Unifier entails(PlausibilityGT f, Unifier u) throws Exception {
-		if(this.someLanguageContains(f)) {
-			for(CompactEpistemicState ces : this.getLocalEpistemicStates(f)) {
+		PlausibilityGT ground = f.substitute(u);
+		if(this.someLanguageContains(ground)) {
+			for(CompactEpistemicState ces : this.getLocalEpistemicStates(ground)) {
 				Unifier unifier = ces.entails(f, u);
 				if(unifier != null) {
 					return unifier;
 				}
 			}
 			return null;
-		} else {
+		} else if(ground.isGround() && this.someLanguageContains(ground.getLeft()) && this.someLanguageContains(ground.getRight())) {
+			LogicalExpression left = new StrongNegation(ground.getLeft());
+			double leftLambda = 0;
+			for(CompactEpistemicState ces : this.getLocalEpistemicStates(left)) {
+				if(!(ces instanceof ProbabilisticCompactEpistemicState)) {
+					return null;
+				}
+				leftLambda = ces.lambda(left);
+				break;
+			}
+			LogicalExpression right = new StrongNegation(ground.getRight());
+			double rightLambda = 0;
+			for(CompactEpistemicState ces : this.getLocalEpistemicStates(right)) {
+				if(!(ces instanceof ProbabilisticCompactEpistemicState)) {
+					return null;
+				}
+				rightLambda = ces.lambda(right);
+				break;
+			}
+			System.err.println("[10] \\lambda(" + left + ") < \\lambda(" + right + ") = " + leftLambda + " < " + rightLambda);
+			if(leftLambda < rightLambda) {
+				return u;
+			}
 			return null;
+		} else {
+			throw new Exception("operator is only supported across multiple epistemic states if they are probabilistic");
 		}
 	}
 	
 	@Override
 	public Unifier entails(StrongNegation f, Unifier u) throws Exception {
-		if(this.someLanguageContains(f)) {
-			for(CompactEpistemicState ces : this.getLocalEpistemicStates(f)) {
+		StrongNegation ground = f.substitute(u);
+		if(this.someLanguageContains(ground)) {
+			for(CompactEpistemicState ces : this.getLocalEpistemicStates(ground)) {
 				Unifier unifier = ces.entails(f, u);
 				if(unifier != null) {
 					return unifier;
@@ -187,8 +253,9 @@ public class CompactGlobalUncertainBelief extends GlobalUncertainBelief {
 	
 	@Override
 	public Unifier entails(NegationAsFailure f, Unifier u) throws Exception {
-		if(this.someLanguageContains(f)) {
-			for(CompactEpistemicState ces : this.getLocalEpistemicStates(f)) {
+		NegationAsFailure ground = f.substitute(u);
+		if(this.someLanguageContains(ground)) {
+			for(CompactEpistemicState ces : this.getLocalEpistemicStates(ground)) {
 				Unifier unifier = ces.entails(f, u);
 				if(unifier != null) {
 					return unifier;
@@ -202,8 +269,9 @@ public class CompactGlobalUncertainBelief extends GlobalUncertainBelief {
 	
 	@Override
 	public Unifier entails(Equal f, Unifier u) throws Exception {
-		if(this.someLanguageContains(f)) {
-			for(CompactEpistemicState ces : this.getLocalEpistemicStates(f)) {
+		Equal ground = f.substitute(u);
+		if(this.someLanguageContains(ground)) {
+			for(CompactEpistemicState ces : this.getLocalEpistemicStates(ground)) {
 				Unifier unifier = ces.entails(f, u);
 				if(unifier != null) {
 					return unifier;
@@ -217,8 +285,9 @@ public class CompactGlobalUncertainBelief extends GlobalUncertainBelief {
 	
 	@Override
 	public Unifier entails(NotEqual f, Unifier u) throws Exception {
-		if(this.someLanguageContains(f)) {
-			for(CompactEpistemicState ces : this.getLocalEpistemicStates(f)) {
+		NotEqual ground = f.substitute(u);
+		if(this.someLanguageContains(ground)) {
+			for(CompactEpistemicState ces : this.getLocalEpistemicStates(ground)) {
 				Unifier unifier = ces.entails(f, u);
 				if(unifier != null) {
 					return unifier;

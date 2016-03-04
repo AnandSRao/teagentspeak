@@ -12,7 +12,7 @@ import agentspeak.logical_expressions.terminals.BeliefLiteral;
 public class StrongNegation extends UnaryOperation {
 	
 	public static final String SYMBOL_STRONG_NEGATION = "~";
-	public static final int PRECEDENCE_STRONG_NEGATION = 5;
+	public static final int PRECEDENCE_STRONG_NEGATION = 3;
 	
 	public StrongNegation(LogicalExpression c) {
 		super(c);

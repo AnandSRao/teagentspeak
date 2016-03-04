@@ -142,11 +142,9 @@ public class CompactEpistemicState extends EpistemicState {
 		if(!f.isGround()) {
 			throw new NotGroundException("formula must be ground");
 		}
-		LogicalExpression formula;
-		if(f.inNNF()) {
-			formula = this.pare(f);
-		} else {
-			formula = this.pare(f.toNNF());
+		LogicalExpression formula = this.pare(f);
+		if(!formula.inNNF()) {
+			formula = formula.toNNF();
 		}
 		return this.lambda(formula, new AdvancedSet<BeliefLiteral>());
 	}

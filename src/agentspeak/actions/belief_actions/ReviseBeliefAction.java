@@ -32,7 +32,7 @@ public class ReviseBeliefAction extends BeliefAction {
 		BeliefLiteral l = this.getBeliefLiteral().substitute(u);
 		Number w = (Number)weight.substitute(u);
 		bb.revise(l, w.getDoubleValue());
-		System.out.println("         belief revised: " + l);
+		System.out.println("           belief revised: *(" + l + "," + w + ")");
 		es.add(new ExternalEvent(new ReviseBeliefEventTrigger(l, weight)));
 		return false;
 	}

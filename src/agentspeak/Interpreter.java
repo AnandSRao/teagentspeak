@@ -2,6 +2,7 @@ package agentspeak;
 
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Scanner;
 
 public class Interpreter {
 	
@@ -30,45 +31,63 @@ public class Interpreter {
 	}
 	
 	public void run() throws Exception {
-		System.out.println("                     P = " + planLibrary);
+		System.out.println("                       P = " + planLibrary);
 		
-		while(!(eventSet.isEmpty() && intentionSet.isEmpty())) {
+		int counter = 0;
+		Scanner s = new Scanner(System.in);
+		while(!eventSet.isEmpty() || !intentionSet.isEmpty()) {
 //			try {
 //			    Thread.sleep(1000);
 //			} catch(InterruptedException ex) {
 //			    Thread.currentThread().interrupt();
 //			}
 			
-			System.out.println("                     B = " + beliefBase);
-			System.out.println("                     E = " + eventSet);
+			System.out.print("continue [y/N]? ");
+			String input = "";
+			while(!input.equals("y")) {
+				input = s.nextLine();
+			}
+			
+			counter++;
+			System.out.println();
+			System.out.println("reasoning cycle " + counter + "...");
+			System.out.println();
+			
+			System.out.println("                       B = " + beliefBase);
+			System.out.println("                       E = " + eventSet);
+			System.out.println();
 			
 			if(!eventSet.isEmpty()) {
 				Event e = eventSet.selectEvent();
 				if(e != null) {
-					System.out.println("         event selected: " + e);
+					System.out.println("           event selected: " + e);
 					IntendedMeans im = selectPlan(e);
 					if(im != null) {
-						System.out.println("intended means selected: " + im);
 						intentionSet.adoptIntention(e, im);
 					}
 				}
 			}
 			
-			System.out.println("                     I = " + intentionSet);
+			System.out.println();
+			System.out.println("                       I = " + intentionSet);
+			System.out.println();
 			if(!intentionSet.isEmpty()) {
 				Intention i = intentionSet.selectIntention();
 				if(i != null) {
-					System.out.println("     intention selected: " + i);
+					System.out.println("       intention selected: " + i);
 					i.executeIntention(beliefBase, eventSet, intentionSet);
 				}
 			}
 		}
+		s.close();
 	}
 	
 	public IntendedMeans selectPlan(Event e) throws Exception {
 		Queue<IntendedMeans> relevant = selectRelevantPlans(e);
+		System.out.println("  relevant plans selected: " + relevant);
 		if(!relevant.isEmpty()) {
 			Queue<IntendedMeans> applicable = selectApplicablePlans(relevant);
+			System.out.println("applicable plans selected: " + applicable);
 			if(!applicable.isEmpty()) {
 				return selectPlan(applicable);
 			}
@@ -94,7 +113,7 @@ public class Interpreter {
 			IntendedMeans up = copy.poll();
 			LogicalExpression context = up.getPlan().getContext();
 			Unifier u = beliefBase.entails(context.toNNF(), up.getUnifier());
-			System.err.println("GUB \\models <" + context + ", " + up.getUnifier() + "> = " + u);
+			System.err.println("B \\models <" + context + ", " + up.getUnifier() + "> = " + u);
 			if(u != null) {
 				applicable.add(new IntendedMeans(up.getPlan(), u));
 			}

@@ -179,7 +179,12 @@ public abstract class EpistemicState {
 	}
 	
 	public Primitive pare(PlausibilityGE f) throws Exception {
-		if(this.lambda(new StrongNegation(f.getLeft())) <= this.lambda(new StrongNegation(f.getRight()))) {
+		LogicalExpression leftNegation = new StrongNegation(f.getLeft());
+		LogicalExpression rightNegation = new StrongNegation(f.getRight());
+		double lambdaLeftNegation = this.lambda(leftNegation);
+		double lambdaRightNegation = this.lambda(rightNegation);
+		//System.err.println("[1] \\lambda(" + leftNegation + ") <= \\lambda(" + rightNegation + ") = " + Utilities.format(lambdaLeftNegation) + " <= " + Utilities.format(lambdaRightNegation));
+		if(lambdaLeftNegation <= lambdaRightNegation) {
 			return new Tautology();
 		} else {
 			return new Contradiction();
@@ -187,7 +192,12 @@ public abstract class EpistemicState {
 	}
 	
 	public Primitive pare(PlausibilityGT f) throws Exception {
-		if(this.lambda(new StrongNegation(f.getLeft())) < this.lambda(new StrongNegation(f.getRight()))) {
+		LogicalExpression leftNegation = new StrongNegation(f.getLeft());
+		LogicalExpression rightNegation = new StrongNegation(f.getRight());
+		double lambdaLeftNegation = this.lambda(leftNegation);
+		double lambdaRightNegation = this.lambda(rightNegation);
+		//System.err.println("[2] \\lambda(" + leftNegation + ") < \\lambda(" + rightNegation + ") = " + Utilities.format(lambdaLeftNegation) + " < " + Utilities.format(lambdaRightNegation));
+		if(lambdaLeftNegation < lambdaRightNegation) {
 			return new Tautology();
 		} else {
 			return new Contradiction();
@@ -199,7 +209,12 @@ public abstract class EpistemicState {
 	}
 	
 	public Primitive pare(NegationAsFailure f) throws Exception {
-		if(this.lambda(new StrongNegation(f.getChild())) >= this.lambda(f.getChild())) {
+		LogicalExpression childNegation = new StrongNegation(f.getChild());
+		LogicalExpression child = f.getChild();
+		double lambdaChildNegation = this.lambda(childNegation);
+		double lambdaChild = this.lambda(child);
+		//System.err.println("[3] \\lambda(" + childNegation + ") >= \\lambda(" + child + ") = " + Utilities.format(lambdaChildNegation) + " >= " + Utilities.format(lambdaChild));
+		if(lambdaChildNegation >= lambdaChild) {
 			return new Tautology();
 		} else {
 			return new Contradiction();
@@ -226,13 +241,35 @@ public abstract class EpistemicState {
 		return this.entails(f, new Unifier());
 	}
 	
+//	public Unifier entails(LogicalExpression f, Unifier u) throws Exception {
+//		AdvancedSet<Unifier> possibleUnifiers = this.possibleUnifiers(f, u);
+////		//System.err.println("possibleUnifiers(" + f.substitute(u) + ") := " + possibleUnifiers);
+//		for(Unifier pu : possibleUnifiers) {
+//			LogicalExpression ground = this.pare(f.substitute(pu)).toNNF();
+////			LogicalExpression groundNegation = new StrongNegation(this.pare(ground));
+//			LogicalExpression groundNegation = this.pare(new StrongNegation(ground)).toNNF();
+//			double lambdaGround = this.lambda(ground);
+//			double lambdaGroundNegation = this.lambda(groundNegation);
+//			//System.err.println("[4] \\lambda(" + ground + ") > \\lambda(" + groundNegation + ") = " + Utilities.format(lambdaGround) + " > " + Utilities.format(lambdaGroundNegation));
+//			if(lambdaGround > lambdaGroundNegation) {
+//				return pu;
+//			}
+//		}
+//		return null;
+//	}
+	
 	public Unifier entails(LogicalExpression f, Unifier u) throws Exception {
-		AdvancedSet<Unifier> possibleUnifiers = this.possibleUnifiers(f, u);
-		for(Unifier pu : possibleUnifiers) {
-			LogicalExpression ground = f.substitute(pu);
-			if(this.lambda(ground) > this.lambda(new StrongNegation(this.pare(ground)))) {
-				return pu;
-			}
+		LogicalExpression ground = f.substitute(u);
+		if(!domain.containsAll(ground.getBeliefAtoms())) {
+			return null;
+		}
+		LogicalExpression pared = this.pare(ground).toNNF();
+		LogicalExpression paredNegation = this.pare(new StrongNegation(pared)).toNNF();
+		double lambdaPared = this.lambda(pared);
+		double lambdaParedNegation = this.lambda(paredNegation);
+		//System.err.println("[4] \\lambda(" + pared + ") > \\lambda(" + paredNegation + ") = " + Utilities.format(lambdaPared) + " > " + Utilities.format(lambdaParedNegation));
+		if(lambdaPared > lambdaParedNegation) {
+			return u;
 		}
 		return null;
 	}

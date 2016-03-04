@@ -9,8 +9,8 @@ import exceptions.UnsupportedOperationException;
 
 public class Conjunction extends BinaryOperation {
 	
-	public static final String SYMBOL_CONJUNCTION = "&&";
-	public static final int PRECEDENCE_CONJUNCTION = 4;
+	public static final String SYMBOL_CONJUNCTION = "&";
+	public static final int PRECEDENCE_CONJUNCTION = 1;
 	
 	public Conjunction(LogicalExpression l, LogicalExpression r) {
 		super(l, r);

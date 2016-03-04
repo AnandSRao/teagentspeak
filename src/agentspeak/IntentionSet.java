@@ -14,7 +14,7 @@ public class IntentionSet extends LinkedList<Intention> {
 		Intention i = e.getIntention();
 		i.push(up);
 		this.add(i);
-		System.out.println("      intention adopted: " + i);
+		System.out.println("        intention adopted: " + i);
 	}
 	
 }

@@ -9,8 +9,8 @@ import exceptions.UnsupportedOperationException;
 
 public class Disjunction extends BinaryOperation {
 	
-	public static final String SYMBOL_DISJUNCTION = "||";
-	public static final int PRECEDENCE_DISJUNCTION = 4;
+	public static final String SYMBOL_DISJUNCTION = "|";
+	public static final int PRECEDENCE_DISJUNCTION = 1;
 	
 	public Disjunction(LogicalExpression l, LogicalExpression r) {
 		super(l, r);

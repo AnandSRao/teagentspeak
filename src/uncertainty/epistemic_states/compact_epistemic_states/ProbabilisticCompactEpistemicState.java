@@ -7,13 +7,8 @@ import utilities.Utilities;
 import agentspeak.logical_expressions.BeliefAtom;
 import agentspeak.logical_expressions.operations.binary_operations.Conjunction;
 import agentspeak.logical_expressions.operations.binary_operations.Disjunction;
-import agentspeak.logical_expressions.operations.binary_operations.PlausibilityGE;
-import agentspeak.logical_expressions.operations.binary_operations.PlausibilityGT;
 import agentspeak.logical_expressions.terminals.BeliefLiteral;
-import agentspeak.logical_expressions.terminals.Primitive;
 import agentspeak.logical_expressions.terminals.belief_literals.PositiveLiteral;
-import agentspeak.logical_expressions.terminals.primitives.Contradiction;
-import agentspeak.logical_expressions.terminals.primitives.Tautology;
 import data_structures.AdvancedSet;
 
 public class ProbabilisticCompactEpistemicState extends CompactEpistemicState {
@@ -94,24 +89,6 @@ public class ProbabilisticCompactEpistemicState extends CompactEpistemicState {
 	@Override
 	public double lambda(Disjunction f, AdvancedSet<BeliefLiteral> bounded) throws Exception {
 		return this.lambda(f.getLeft()) + this.lambda(f.getRight()) - this.lambda(new Conjunction(f.getLeft(), f.getRight()));
-	}
-	
-	@Override
-	public Primitive pare(PlausibilityGE f) throws Exception {
-		if(this.lambda(f.getLeft()) >= this.lambda(f.getRight())) {
-			return new Tautology();
-		} else {
-			return new Contradiction();
-		}
-	}
-	
-	@Override
-	public Primitive pare(PlausibilityGT f) throws Exception {
-		if(this.lambda(f.getLeft()) > this.lambda(f.getRight())) {
-			return new Tautology();
-		} else {
-			return new Contradiction();
-		}
 	}
 	
 	@Override

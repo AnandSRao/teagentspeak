@@ -10,7 +10,7 @@ import exceptions.UnsupportedOperationException;
 public class PlausibilityGT extends BinaryOperation {
 	
 	public static final String SYMBOL_PLAUSIBILITY_GT = ">";
-	public static final int PRECEDENCE_PLAUSIBILITY_GT = 1;
+	public static final int PRECEDENCE_PLAUSIBILITY_GT = 2;
 	
 	public PlausibilityGT(LogicalExpression l, LogicalExpression r) throws UnsupportedOperationException {
 		super(l, r);

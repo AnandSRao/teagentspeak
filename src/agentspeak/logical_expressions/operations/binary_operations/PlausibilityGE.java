@@ -10,7 +10,7 @@ import exceptions.UnsupportedOperationException;
 public class PlausibilityGE extends BinaryOperation {
 	
 	public static final String SYMBOL_PLAUSIBILITY_GE = ">=";
-	public static final int PRECEDENCE_PLAUSIBILITY_GE = 1;
+	public static final int PRECEDENCE_PLAUSIBILITY_GE = 2;
 	
 	public PlausibilityGE(LogicalExpression l, LogicalExpression r) throws UnsupportedOperationException {
 		super(l, r);

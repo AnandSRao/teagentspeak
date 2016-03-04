@@ -33,7 +33,7 @@ public class EnvironmentAction extends Action {
 
 	@Override
 	public boolean executeAction(Unifier u, Intention i, BeliefBase bb, EventSet es) {
-		System.out.println("        action executed: " + this.substitute(u));
+		System.out.println("          action executed: " + this.substitute(u));
 		return false;
 	}
 	

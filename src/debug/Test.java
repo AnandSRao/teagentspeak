@@ -17,7 +17,6 @@ import data_structures.AdvancedSet;
 import agentspeak.LogicalExpression;
 import agentspeak.Interpreter;
 import agentspeak.Parser;
-import agentspeak.event_triggers.belief_event_triggers.ReviseBeliefEventTrigger;
 import agentspeak.event_triggers.goal_event_triggers.AddGoalEventTrigger;
 import agentspeak.events.ExternalEvent;
 import agentspeak.logical_expressions.BeliefAtom;
@@ -694,11 +693,12 @@ public class Test {
 			domain.add(p.parseBelief("location(b)"));
 			domain.add(p.parseBelief("location(c)"));
 			domain.add(p.parseBelief("location(d)"));
-			i.getBeliefBase().addLocalEpistemicState(new CompactEpistemicState(domain));
+			i.getBeliefBase().addLocalEpistemicState(new ProbabilisticCompactEpistemicState(domain));
 			
 			i.getBeliefBase().revise(p.parseLiteral("location(a)"), 1);
-			i.getBeliefBase().revise(p.parseLiteral("location(b)"), -1);
-			i.getBeliefBase().revise(p.parseLiteral("~location(c)"), 1);
+			i.getBeliefBase().revise(p.parseLiteral("location(b)"), 0);
+			i.getBeliefBase().revise(p.parseLiteral("location(c)"), 0);
+			i.getBeliefBase().revise(p.parseLiteral("location(d)"), 0);
 			
 //			i.getPlanLibrary().add(p.parsePlan("+!start : location(a) && location(a) && a \\== a <- print('done')")); // false
 //			i.getPlanLibrary().add(p.parsePlan("+!start : location(a) && location(b) && a \\== b <- print('done')")); // false
@@ -728,7 +728,7 @@ public class Test {
 //			i.getPlanLibrary().add(p.parsePlan("+!start : ~location(c) && ~location(c) && c \\== c <- print('done')")); // false
 //			i.getPlanLibrary().add(p.parsePlan("+!start : ~location(c) && ~location(d) && c \\== d <- print('done')")); // false
 			
-			i.getPlanLibrary().add(p.parsePlan("+!start : ~location(X) && ~location(Y) && X \\== Y <- *(location(d),2); *(location(d),1); *(location(d),-3); print('done')")); // {X=c, Y=b}
+			i.getPlanLibrary().add(p.parsePlan("+!start : location(X) && location(Y) && X \\== Y <- print(X,Y)")); // {X=c, Y=b}
 			
 			i.getEventSet().add(new ExternalEvent(new AddGoalEventTrigger(p.parseGoal("!start"))));
 			
@@ -1696,13 +1696,8 @@ public class Test {
 			AdvancedSet<BeliefAtom> domaina = new AdvancedSet<BeliefAtom>();
 			domaina.add(p.parseBelief("calibrated_transformer"));
 			domaina.add(p.parseBelief("calibrated_voltSensors"));
-			for(int j = 1; j <= 10; j++) {
-				domaina.add(p.parseBelief("calibrated_voltSensor(sensor" + j + ")"));
-			}
 			domaina.add(p.parseBelief("switchedOn_transformer"));
-			for(int j = 1; j <= 10; j++) {
-				domaina.add(p.parseBelief("switchedOn_voltSensor(sensor" + j + ")"));
-			}
+			domaina.add(p.parseBelief("switchedOn_voltSensors"));
 			domaina.add(p.parseBelief("working_transformer"));
 			domaina.add(p.parseBelief("supplying_powergrid"));
 			
@@ -1710,20 +1705,18 @@ public class Test {
 			
 			i.getBeliefBase().revise(p.parseLiteral("calibrated_transformer"), 0.79);
 			i.getBeliefBase().revise(p.parseLiteral("calibrated_voltSensors"), 0.88);
-//			i.getBeliefBase().revise(p.parseLiteral("calibrated_voltSensor(sensor3)"), 0.88);
-//			i.getBeliefBase().revise(p.parseLiteral("calibrated_voltSensor(sensor6)"), 0.88);
-//			i.getBeliefBase().revise(p.parseLiteral("calibrated_voltSensor(sensor9)"), 0.88);
 			i.getBeliefBase().revise(p.parseLiteral("switchedOn_transformer"), 0.51);
+			i.getBeliefBase().revise(p.parseLiteral("switchedOn_voltSensors"), 0.73);
 //			i.getBeliefBase().revise(p.parseLiteral("~working_transformer"), 0.81);
 //			i.getBeliefBase().revise(p.parseLiteral("~supplying_powergrid"), 0.89);
 			
-			i.getPlanLibrary().add(p.parsePlan("+!prepareToStartSubstation : true <- calibrate_transformer; calibrate_voltSensors; !startSubstation"));
+			i.getPlanLibrary().add(p.parsePlan("+!prepareToStartSubstation : true <- calibrate_transformer; *(switchedOn_transformer, 0.83); calibrate_voltSensors; !startSubstation"));
 			i.getPlanLibrary().add(p.parsePlan("+!startSubstation : calibrated_transformer && calibrated_voltSensors <- switchOn_transformer; switchOn_voltSensors; !runSubstation"));
 			i.getPlanLibrary().add(p.parsePlan("+!runSubstation : switchedOn_transformer && switchedOn_voltSensors <- work_transformer; work_voltSensors; supply_powergrid"));
 			i.getPlanLibrary().add(p.parsePlan("*(voltLow, X) : not working_transformer && not supplying_powergrid <- stop_transformer; maintain_transformer; !prepareToStartSubstation"));
 			
-//			i.getEventSet().add(new ExternalEvent(new AddGoalEventTrigger(p.parseGoal("!prepareToStartSubstation"))));
-			i.getEventSet().add(new ExternalEvent(new ReviseBeliefEventTrigger(p.parseLiteral("voltLow"), p.parseTerm("0.8"))));
+			i.getEventSet().add(new ExternalEvent(new AddGoalEventTrigger(p.parseGoal("!prepareToStartSubstation"))));
+//			i.getEventSet().add(new ExternalEvent(new ReviseBeliefEventTrigger(p.parseLiteral("voltLow"), p.parseTerm("0.8"))));
 			
 			i.run();
 			
@@ -1755,7 +1748,7 @@ public class Test {
 //		revision();
 //		negationAsFailure();
 		
-//		relationalExpression();
+		relationalExpression();
 		
 //		semanticEpistemicState();
 //		System.out.println();
@@ -1776,7 +1769,7 @@ public class Test {
 		
 //		cnf();
 		
-		power();
+//		power();
 	}
 
 }
