@@ -50,3 +50,4 @@ bin
 
 # SAT4J files
 org.sat4j.core.jar
+org.sat4j.core-src.jar
