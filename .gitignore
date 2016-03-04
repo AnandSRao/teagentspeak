@@ -47,3 +47,6 @@ Temporary Items
 bin
 .classpath
 .project
+
+# SAT4J files
+org.sat4j.core.jar
